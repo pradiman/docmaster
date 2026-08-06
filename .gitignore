@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Virtual environment
+.venv/
+
+# Uploaded and generated files (keep folders, ignore contents)
+uploads/*
+!uploads/.gitkeep
+outputs/*
+!outputs/.gitkeep
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+
+# Flask
+instance/
