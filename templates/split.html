@@ -26,4 +26,15 @@
 
         {{ form.submit(class="btn btn-primary") }}
     </form>
+
+    {% if output_filename %}
+        <hr class="my-4">
+        <h5>Result</h5>
+        <a href="{{ url_for('download', filename=output_filename) }}" class="btn btn-success">
+            Download split.pdf
+        </a>
+        <button class="btn btn-outline-secondary" disabled>
+            Generate QR Code (coming in later phase)
+        </button>
+    {% endif %}
 {% endblock %}
