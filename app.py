@@ -3,6 +3,7 @@ import os
 from flask import Flask, flash, render_template, request, send_from_directory
 
 from forms.pdf_forms import ImagesToPdfForm, MergeForm, SplitForm
+from services.image_manager import ImageManager
 from services.pdf_manager import PDFManager
 
 app = Flask(__name__)
@@ -80,8 +81,23 @@ def split():
 def images_to_pdf():
     form = ImagesToPdfForm()
     if form.validate_on_submit():
-        # Processing logic (actually converting images) is added in later phase.
-        pass
+        uploaded_files = form.image_files.data  # list of FileStorage objects
+
+        saved_paths = []
+        for file in uploaded_files:
+            save_path = os.path.join(UPLOAD_FOLDER, file.filename)
+            file.save(save_path)
+            saved_paths.append(save_path)
+
+        output_filename = "images.pdf"
+        output_path = os.path.join(OUTPUT_FOLDER, output_filename)
+
+        image_manager = ImageManager()
+        image_manager.images_to_pdf(saved_paths, output_path)
+
+        flash("Images converted to PDF successfully!", "success")
+        return render_template("images_to_pdf.html", form=form, output_filename=output_filename)
+
     return render_template("images_to_pdf.html", form=form)
 
 if __name__ == "__main__":
