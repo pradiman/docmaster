@@ -10,6 +10,8 @@ from flask import (
     send_from_directory,
     url_for,
 )
+from PIL import UnidentifiedImageError
+from pypdf.errors import PdfReadError
 
 from forms.pdf_forms import ImagesToPdfForm, MergeForm, SplitForm
 from services.image_manager import ImageManager
@@ -33,21 +35,23 @@ def index():
 def merge():
     form = MergeForm()
     if form.validate_on_submit():
-        uploaded_files = form.pdf_files.data  # list of FileStorage objects
+        uploaded_files = form.pdf_files.data
 
-        # Save each uploaded PDF into uploads/
         saved_paths = []
         for file in uploaded_files:
             save_path = os.path.join(UPLOAD_FOLDER, file.filename)
             file.save(save_path)
             saved_paths.append(save_path)
 
-        # Merge them into a single PDF in outputs/
         output_filename = "merged.pdf"
         output_path = os.path.join(OUTPUT_FOLDER, output_filename)
 
         pdf_manager = PDFManager()
-        pdf_manager.merge_pdf(saved_paths, output_path)
+        try:
+            pdf_manager.merge_pdf(saved_paths, output_path)
+        except PdfReadError:
+            flash("One of the uploaded files is not a valid PDF.", "danger")
+            return render_template("merge.html", form=form)
 
         flash("PDFs merged successfully!", "success")
         return render_template("merge.html", form=form, output_filename=output_filename)
@@ -57,6 +61,10 @@ def merge():
 
 @app.route("/download/<filename>")
 def download(filename):
+    file_path = os.path.join(OUTPUT_FOLDER, filename)
+    if not os.path.exists(file_path):
+        flash("That file no longer exists. Please generate it again.", "danger")
+        return redirect(url_for("index"))
     return send_from_directory(OUTPUT_FOLDER, filename, as_attachment=True)
 
 
@@ -84,9 +92,11 @@ def show_qr(filename):
     qr_filename = f"qr_{filename}.png"
     return render_template("qr_result.html", filename=filename, qr_filename=qr_filename)
 
+
 @app.route("/qr-image/<filename>")
 def qr_image(filename):
     return send_from_directory(OUTPUT_FOLDER, filename)
+
 
 @app.route("/split", methods=["GET", "POST"])
 def split():
@@ -108,6 +118,9 @@ def split():
         except ValueError as error:
             flash(str(error), "danger")
             return render_template("split.html", form=form)
+        except PdfReadError:
+            flash("The uploaded file is not a valid PDF.", "danger")
+            return render_template("split.html", form=form)
 
         flash("PDF split successfully!", "success")
         return render_template("split.html", form=form, output_filename=output_filename)
@@ -119,7 +132,7 @@ def split():
 def images_to_pdf():
     form = ImagesToPdfForm()
     if form.validate_on_submit():
-        uploaded_files = form.image_files.data  # list of FileStorage objects
+        uploaded_files = form.image_files.data
 
         saved_paths = []
         for file in uploaded_files:
@@ -131,12 +144,23 @@ def images_to_pdf():
         output_path = os.path.join(OUTPUT_FOLDER, output_filename)
 
         image_manager = ImageManager()
-        image_manager.images_to_pdf(saved_paths, output_path)
+        try:
+            image_manager.images_to_pdf(saved_paths, output_path)
+        except UnidentifiedImageError:
+            flash("One of the uploaded files is not a valid image.", "danger")
+            return render_template("images_to_pdf.html", form=form)
 
         flash("Images converted to PDF successfully!", "success")
         return render_template("images_to_pdf.html", form=form, output_filename=output_filename)
 
     return render_template("images_to_pdf.html", form=form)
+
+
+@app.errorhandler(500)
+def handle_server_error(error):
+    flash("Something went wrong. Please try again.", "danger")
+    return redirect(url_for("index"))
+
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
