@@ -1,10 +1,20 @@
 import os
 
-from flask import Flask, flash, render_template, request, send_from_directory
+import requests
+from flask import (
+    Flask,
+    flash,
+    redirect,
+    render_template,
+    request,
+    send_from_directory,
+    url_for,
+)
 
 from forms.pdf_forms import ImagesToPdfForm, MergeForm, SplitForm
 from services.image_manager import ImageManager
 from services.pdf_manager import PDFManager
+from services.qr_helper import generate_qr_code
 
 app = Flask(__name__)
 
@@ -49,6 +59,34 @@ def merge():
 def download(filename):
     return send_from_directory(OUTPUT_FOLDER, filename, as_attachment=True)
 
+
+@app.route("/generate-qr/<filename>")
+def generate_qr(filename):
+    # Build the full download URL for this file, e.g.
+    # http://127.0.0.1:5000/download/merged.pdf
+    download_url = url_for("download", filename=filename, _external=True)
+
+    qr_filename = f"qr_{filename}.png"
+    qr_path = os.path.join(OUTPUT_FOLDER, qr_filename)
+
+    try:
+        generate_qr_code(download_url, qr_path)
+    except requests.RequestException:
+        flash("Could not generate QR code. Please try again.", "danger")
+        return redirect(request.referrer or url_for("index"))
+
+    flash("QR code generated!", "success")
+    return redirect(url_for("show_qr", filename=filename))
+
+
+@app.route("/qr/<filename>")
+def show_qr(filename):
+    qr_filename = f"qr_{filename}.png"
+    return render_template("qr_result.html", filename=filename, qr_filename=qr_filename)
+
+@app.route("/qr-image/<filename>")
+def qr_image(filename):
+    return send_from_directory(OUTPUT_FOLDER, filename)
 
 @app.route("/split", methods=["GET", "POST"])
 def split():
