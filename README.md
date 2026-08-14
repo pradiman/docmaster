@@ -1,4 +1,4 @@
-# DocMaster – PDF & Image Toolkit
+# DocMaster – PDF Toolkit
 
 A simple Flask web app for merging PDFs, splitting PDFs, and converting images into PDFs with QR code generation for every output. Built as a final project for a 20-day Python training course.
 
