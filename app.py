@@ -1,4 +1,5 @@
 import os
+import uuid
 
 import requests
 from flask import (
@@ -22,6 +23,7 @@ app = Flask(__name__)
 
 # Needed for flash messages and Flask-WTF forms (CSRF protection).
 app.config["SECRET_KEY"] = "key"
+app.config["MAX_CONTENT_LENGTH"] = 20 * 1024 * 1024  # 20 MB limit
 
 UPLOAD_FOLDER = "uploads"
 OUTPUT_FOLDER = "outputs"
@@ -37,9 +39,15 @@ def merge():
     if form.validate_on_submit():
         uploaded_files = form.pdf_files.data
 
+        valid_files = [f for f in uploaded_files if f and f.filename]
+        if len(valid_files) < 2:
+            flash("Please select at least 2 PDF files to merge.", "danger")
+            return render_template("merge.html", form=form)
+
         saved_paths = []
-        for file in uploaded_files:
-            save_path = os.path.join(UPLOAD_FOLDER, file.filename)
+        for file in valid_files:
+            unique_name = f"{uuid.uuid4().hex}_{file.filename}"
+            save_path = os.path.join(UPLOAD_FOLDER, unique_name)
             file.save(save_path)
             saved_paths.append(save_path)
 
@@ -48,16 +56,18 @@ def merge():
 
         pdf_manager = PDFManager()
         try:
-            pdf_manager.merge_pdf(saved_paths, output_path)
+           page_count = pdf_manager.merge_pdf(saved_paths, output_path)
         except PdfReadError:
             flash("One of the uploaded files is not a valid PDF.", "danger")
             return render_template("merge.html", form=form)
 
-        flash("PDFs merged successfully!", "success")
+        for path in saved_paths:
+            os.remove(path)
+
+        flash(f"Merged {len(valid_files)} PDFs into a {page_count}-page document!", "success")
         return render_template("merge.html", form=form, output_filename=output_filename)
 
     return render_template("merge.html", form=form)
-
 
 @app.route("/download/<filename>")
 def download(filename):
@@ -103,7 +113,8 @@ def split():
     form = SplitForm()
     if form.validate_on_submit():
         uploaded_file = form.pdf_file.data
-        save_path = os.path.join(UPLOAD_FOLDER, uploaded_file.filename)
+        unique_name = f"{uuid.uuid4().hex}_{uploaded_file.filename}"
+        save_path = os.path.join(UPLOAD_FOLDER, unique_name)
         uploaded_file.save(save_path)
 
         start_str, end_str = form.page_range.data.split("-")
@@ -114,7 +125,7 @@ def split():
 
         pdf_manager = PDFManager()
         try:
-            pdf_manager.split_pdf(save_path, start_page, end_page, output_path)
+            page_count = pdf_manager.split_pdf(save_path, start_page, end_page, output_path)
         except ValueError as error:
             flash(str(error), "danger")
             return render_template("split.html", form=form)
@@ -122,7 +133,9 @@ def split():
             flash("The uploaded file is not a valid PDF.", "danger")
             return render_template("split.html", form=form)
 
-        flash("PDF split successfully!", "success")
+        os.remove(save_path)
+
+        flash(f"Split successful! Extracted a {page_count}-page PDF.", "success")
         return render_template("split.html", form=form, output_filename=output_filename)
 
     return render_template("split.html", form=form)
@@ -136,7 +149,8 @@ def images_to_pdf():
 
         saved_paths = []
         for file in uploaded_files:
-            save_path = os.path.join(UPLOAD_FOLDER, file.filename)
+            unique_name = f"{uuid.uuid4().hex}_{file.filename}"
+            save_path = os.path.join(UPLOAD_FOLDER, unique_name)
             file.save(save_path)
             saved_paths.append(save_path)
 
@@ -145,12 +159,15 @@ def images_to_pdf():
 
         image_manager = ImageManager()
         try:
-            image_manager.images_to_pdf(saved_paths, output_path)
+            page_count = image_manager.images_to_pdf(saved_paths, output_path)
         except UnidentifiedImageError:
             flash("One of the uploaded files is not a valid image.", "danger")
             return render_template("images_to_pdf.html", form=form)
 
-        flash("Images converted to PDF successfully!", "success")
+        for path in saved_paths:
+            os.remove(path)
+
+        flash(f"Converted {page_count} images into a PDF!", "success")
         return render_template("images_to_pdf.html", form=form, output_filename=output_filename)
 
     return render_template("images_to_pdf.html", form=form)
@@ -159,6 +176,12 @@ def images_to_pdf():
 @app.errorhandler(500)
 def handle_server_error(error):
     flash("Something went wrong. Please try again.", "danger")
+    return redirect(url_for("index"))
+
+
+@app.errorhandler(413)
+def handle_file_too_large(error):
+    flash("File too large. Maximum upload size is 20MB.", "danger")
     return redirect(url_for("index"))
 
 

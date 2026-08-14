@@ -17,7 +17,9 @@ class PDFManager:
         with open(output_path, "wb") as output_file:
             writer.write(output_file)
 
+        page_count = len(writer.pages)
         writer.close()
+        return page_count
 
     def split_pdf(self, input_path, start_page, end_page, output_path):
         """
@@ -42,4 +44,6 @@ class PDFManager:
         with open(output_path, "wb") as output_file:
             writer.write(output_file)
 
+        page_count = len(writer.pages)
         writer.close()
+        return page_count

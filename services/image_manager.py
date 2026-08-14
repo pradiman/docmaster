@@ -26,3 +26,5 @@ class ImageManager:
             save_all=True,
             append_images=remaining_images,
         )
+
+        return len(images)
