@@ -51,7 +51,7 @@ def merge():
             file.save(save_path)
             saved_paths.append(save_path)
 
-        output_filename = "merged.pdf"
+        output_filename = f"merged_{uuid.uuid4().hex[:8]}.pdf"
         output_path = os.path.join(OUTPUT_FOLDER, output_filename)
 
         pdf_manager = PDFManager()
@@ -120,7 +120,7 @@ def split():
         start_str, end_str = form.page_range.data.split("-")
         start_page, end_page = int(start_str), int(end_str)
 
-        output_filename = "split.pdf"
+        output_filename = f"split_{uuid.uuid4().hex[:8]}.pdf"
         output_path = os.path.join(OUTPUT_FOLDER, output_filename)
 
         pdf_manager = PDFManager()
@@ -154,7 +154,7 @@ def images_to_pdf():
             file.save(save_path)
             saved_paths.append(save_path)
 
-        output_filename = "images.pdf"
+        output_filename = f"images_{uuid.uuid4().hex[:8]}.pdf"
         output_path = os.path.join(OUTPUT_FOLDER, output_filename)
 
         image_manager = ImageManager()
