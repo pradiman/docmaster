@@ -3,12 +3,38 @@
 {% block title %}DocMaster – Home{% endblock %}
 
 {% block content %}
-    <h1 class="mb-3">Welcome to DocMaster</h1>
-    <p class="lead">A simple toolkit for merging PDFs, splitting PDFs, and converting images to PDF.</p>
+    <div class="text-center mb-5">
+        <h1 class="mb-3 hero-title">Welcome to DocMaster</h1>
+        <p class="lead text-muted">A simple toolkit for merging PDFs, splitting PDFs, and converting images to PDF.</p>
+    </div>
 
-    <div class="d-flex gap-2">
-        <a href="{{ url_for('merge') }}" class="btn btn-outline-primary">Merge PDFs</a>
-        <a href="{{ url_for('split') }}" class="btn btn-outline-primary">Split PDF</a>
-        <a href="{{ url_for('images_to_pdf') }}" class="btn btn-outline-primary">Images → PDF</a>
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Merge PDFs</h5>
+                    <p class="card-text text-muted">Combine multiple PDF files into one PDF.</p>
+                    <a href="{{ url_for('merge') }}" class="btn btn-outline-primary">Get Started</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Split PDF</h5>
+                    <p class="card-text text-muted">Extract a specific page range from a PDF.</p>
+                    <a href="{{ url_for('split') }}" class="btn btn-outline-primary">Get Started</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Images to PDF</h5>
+                    <p class="card-text text-muted">Convert JPG/PNG images into a single PDF.</p>
+                    <a href="{{ url_for('images_to_pdf') }}" class="btn btn-outline-primary">Get Started</a>
+                </div>
+            </div>
+        </div>
     </div>
 {% endblock %}
