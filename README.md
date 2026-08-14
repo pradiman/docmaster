@@ -60,7 +60,6 @@ docmaster/
 ## Possible Future Improvements
 
 - PDF compression (merge/split/convert results could optionally be compressed)
-- Unique, timestamped output filenames to avoid overwriting previous results
 - Deployment to a public host so QR codes work from any device
 
 ## Course Context
