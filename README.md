@@ -52,7 +52,7 @@ docmaster/
 
 ## Known Limitations
 
-- QR codes point to localhost by default. Since the app runs locally, the download URL encoded in each QR code (e.g. `http://127.0.0.1:5000/download/merged.pdf`) is only reachable from the same machine. To test QR codes on a phone, run the app with `host="0.0.0.0"` in `app.py` and access it via your machine's local network IP (e.g. `http://192.168.x.x:5000`) from a device on the same Wi-Fi network.
+- QR codes point to localhost by default. Since the app runs locally, the download URL encoded in each QR code (e.g. `http://127.0.0.1:5000/download/merged.pdf`) is only reachable from the same machine. QR codes can be tested via online QR scanner tools which will point to the download url for the output file. To test QR codes on a phone, run the app with `host="0.0.0.0"` in `app.py` and access it via your machine's local network IP (e.g. `http://192.168.x.x:5000`) from a device on the same Wi-Fi network. 
 - No authentication or user accounts — this is a single-user local tool by design.
 - Uploads are limited to 20MB per request.
 - Output files use a random suffix (e.g. `merged_a1b2c3d4.pdf`) to avoid overwriting previous results, but `outputs/` will grow over time since there's no automatic cleanup of old generated files.
@@ -64,4 +64,4 @@ docmaster/
 
 ## Course Context
 
-This project was built incrementally over 11 phases as the final assignment for a 20-day Python training course, covering Flask fundamentals, form handling, file processing, external API integration, error handling, and the full Git/GitHub workflow.
+This project was built incrementally over multiple phases as the final assignment for a 20-day Python training course, covering Flask fundamentals, form handling, file processing, external API integration, error handling, and the full Git/GitHub workflow.
